@@ -23,13 +23,13 @@ up to date at the end of every milestone.
       trigger), reachability badges, states within the rate limit, three
       buttons, manifest, docs en/fr. Tested against fixtures and fakes only.
 - [ ] **Milestone 2 — real hardware**: run against a real DIRIGERA hub and a
-      real TRÅDFRI gateway (testers on the forum), record their answers as
+      real TRÅDFRI gateway (testers with the hardware), record their answers as
       fixtures, fix what differs. To check first:
   - the `remotePressEvent` ids of multi-button remotes (`<id>_1`, `_2`…?) and
     which remotes send them (STYRBAR, RODRET, BILRESA);
   - the shape of `deviceRemoved` and `deviceConfigurationChanged`;
-  - the hub answers the websocket `ping` event (or the silence watchdog
-    reopens the socket every 95 s);
+  - the hub answers the websocket protocol ping or the `ping` event (else the
+    silence watchdog reopens the socket every 95 s in a quiet home);
   - the token endpoint refusal before the button press (status code);
   - writing `motorState` on a STARKVIND (does it switch `fanMode` to `on`?),
     `blindsState: 'stopped'` to stop a blind;
@@ -41,10 +41,14 @@ up to date at the end of every milestone.
       hub's own certificate.
 - [ ] **Milestone 4 — first release**: Docker image build check,
       `npx github:GladysAssistant/integration-store .`, Release workflow,
-      topic, forum thread in Développement.
+      topic. No forum post from this module (see Decisions).
 
 ## Decisions
 
+- Forum: no dedicated topic for this integration, ever, and no post from
+  this module's work. Once the 10 claimed modules are published, one recap
+  message goes to the general thread (/t/10385), posted by the main session;
+  this module's line: "Récap forum : gladys-ikea — …" (end of each report).
 - One DIRIGERA hub and one TRÅDFRI gateway at most, both possible at once.
 - DIRIGERA hub devices sharing an id with a `_N` suffix are one Gladys device
   (SOMRIG buttons, VALLHORN motion + light sensors); a feature present on
