@@ -1,45 +1,77 @@
 // -----------------------------------------------------------------------------
-// Integration configuration.
-//
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// The configuration: the manifest `config_schema` values, plus the keys the
+// integration stores itself after a pairing (STORED), normalized.
 // -----------------------------------------------------------------------------
 
-// Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
-export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+import { STORED } from './constants.js';
+
+/** Defaults, mirrored by the manifest (checked by test/manifest.test.js). */
+export const DEFAULTS = {
+  dirigera_host: '',
+  verify_certificate: true,
+  tradfri_host: '',
 };
 
+const LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+
 /**
- * Merge the user config with the defaults.
- * @param {Record<string, unknown>} raw config returned by the SDK
+ * The address typed by the user: an IP address or a host name. A pasted URL
+ * ("https://192.168.1.20:8443/") is reduced to its host.
+ * @returns {{ host: string } | { error: 'invalid' }} `host` is '' when empty.
+ */
+export function parseHost(raw) {
+  let text = String(raw ?? '').trim();
+  if (text === '') {
+    return { host: '' };
+  }
+  text = text.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '').replace(/[/?#].*$/, '');
+  const bracketed = /^\[([0-9a-f:.]+)\](?::\d{1,5})?$/i.exec(text);
+  if (bracketed) {
+    return { host: bracketed[1].toLowerCase() };
+  }
+  if (/^[0-9a-f:.]+$/i.test(text) && (text.match(/:/g) ?? []).length >= 2) {
+    return { host: text.toLowerCase() };
+  }
+  const host = text.replace(/:\d{1,5}$/, '');
+  if (host.length > 253 || !host.split('.').every((label) => LABEL.test(label))) {
+    return { error: 'invalid' };
+  }
+  return { host: host.toLowerCase() };
+}
+
+/** A host as it goes in a URL: an IPv6 address between brackets. */
+export const urlHost = (host) => (host.includes(':') ? `[${host}]` : host);
+
+const text = (value) => (typeof value === 'string' ? value.trim() : '');
+
+/**
+ * The configuration of each gateway. `host` is the address to use (typed, or
+ * found at the last pairing or mDNS scan), `typed` says whether the user chose
+ * it (then it is never replaced by a discovered one).
  */
 export function normalizeConfig(raw = {}) {
+  const c = {
+    ...DEFAULTS,
+    ...Object.fromEntries(Object.entries(raw ?? {}).filter(([, v]) => v != null)),
+  };
+  const dirigeraHost = parseHost(c.dirigera_host);
+  const tradfriHost = parseHost(c.tradfri_host);
+  const dirigeraStored = parseHost(c[STORED.DIRIGERA_ADDRESS]).host ?? '';
+  const tradfriStored = parseHost(c[STORED.TRADFRI_ADDRESS]).host ?? '';
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    dirigera: {
+      host: dirigeraHost.host || dirigeraStored,
+      typed: Boolean(dirigeraHost.host),
+      hostError: dirigeraHost.error,
+      token: text(c[STORED.DIRIGERA_TOKEN]),
+      verifyCertificate: c.verify_certificate !== false,
+    },
+    tradfri: {
+      host: tradfriHost.host || tradfriStored,
+      typed: Boolean(tradfriHost.host),
+      hostError: tradfriHost.error,
+      identity: text(c[STORED.TRADFRI_IDENTITY]),
+      psk: text(c[STORED.TRADFRI_PSK]),
+    },
   };
 }

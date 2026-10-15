@@ -1,101 +1,128 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "IKEA DIRIGERA & TRÅDFRI",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "IKEA smart home devices through the DIRIGERA hub or the TRÅDFRI gateway, locally.",
+    "fr": "Les appareils connectés IKEA via le hub DIRIGERA ou la passerelle TRÅDFRI, en local."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "version": "0.1.0",
+  "docker_image": "ghcr.io/lm1lc3n7/gladys-ikea:0.1.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/LM1LC3N7/gladys-ikea/main/cover.png",
+  "categories": ["lighting", "environment", "protocols"],
+  "transports": ["local"],
+  "network_discovery": [
+    { "type": "mdns", "service": "_ihsp._tcp" },
+    { "type": "mdns", "service": "_coap._udp" }
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your IKEA devices, on your local network",
+        "fr": "Vos appareils IKEA, sur votre réseau local"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Lights, plugs, blinds, STARKVIND air purifiers, sensors and remotes paired with a DIRIGERA hub or a TRÅDFRI gateway, without the cloud. DIRIGERA: press \"Pair the DIRIGERA hub\" below, then the action button under the hub within 90 seconds. TRÅDFRI: type the security code printed under the gateway in \"Pair the TRÅDFRI gateway\". The gateways are found on the network by themselves; type an address only if the search fails (its IP address, a .local name does not work from the integration container). Unofficial integration, not affiliated with IKEA.",
+        "fr": "Lampes, prises, stores, purificateurs STARKVIND, capteurs et télécommandes appairés à un hub DIRIGERA ou à une passerelle TRÅDFRI, sans le cloud. DIRIGERA : utilisez « Appairer le hub DIRIGERA » ci-dessous, puis appuyez sur le bouton d'action sous le hub dans les 90 secondes. TRÅDFRI : saisissez le code de sécurité imprimé sous la passerelle dans « Appairer la passerelle TRÅDFRI ». Les passerelles sont trouvées seules sur le réseau ; ne saisissez une adresse que si la recherche échoue (son adresse IP, un nom en .local ne fonctionne pas depuis le conteneur de l'intégration). Intégration non officielle, sans lien avec IKEA."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/LM1LC3N7/gladys-ikea/blob/main/docs/fr.md",
+          "label": { "en": "Guide (French)", "fr": "Guide (français)" }
+        },
+        {
+          "url": "https://github.com/LM1LC3N7/gladys-ikea/blob/main/docs/en.md",
+          "label": { "en": "Guide (English)", "fr": "Guide (anglais)" }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
+      "key": "dirigera_host",
+      "type": "string",
+      "label": { "en": "DIRIGERA hub address", "fr": "Adresse du hub DIRIGERA" },
       "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+        "en": "Leave empty: the hub is found on the network. Otherwise its IP address, for example 192.168.1.20.",
+        "fr": "Laissez vide : le hub est trouvé sur le réseau. Sinon son adresse IP, par exemple 192.168.1.20."
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "placeholder": { "en": "Found automatically", "fr": "Trouvée automatiquement" },
+      "required": false
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "verify_certificate",
+      "type": "boolean",
+      "label": {
+        "en": "Check that the hub certificate was issued by IKEA",
+        "fr": "Vérifier que le certificat du hub a été émis par IKEA"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Turn off only if the connection fails with a certificate error and the address is really your hub's.",
+        "fr": "À désactiver seulement si la connexion échoue sur une erreur de certificat et que l'adresse est bien celle de votre hub."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": true
+    },
+    {
+      "key": "tradfri",
+      "type": "section",
+      "label": { "en": "TRÅDFRI gateway", "fr": "Passerelle TRÅDFRI" },
+      "description": {
+        "en": "The TRÅDFRI gateway (the white square box sold until 2022). Its remotes and motion sensors only report their battery: the gateway never forwards their presses. A DIRIGERA hub does, for the shortcut buttons.",
+        "fr": "La passerelle TRÅDFRI (le boîtier carré blanc vendu jusqu'en 2022). Ses télécommandes et détecteurs de mouvement ne remontent que leur batterie : la passerelle ne transmet jamais leurs appuis. Un hub DIRIGERA le fait, pour les boutons raccourcis."
+      }
+    },
+    {
+      "key": "tradfri_host",
+      "type": "string",
+      "label": { "en": "TRÅDFRI gateway address", "fr": "Adresse de la passerelle TRÅDFRI" },
+      "description": {
+        "en": "Leave empty: the gateway is found on the network. Otherwise its IP address, for example 192.168.1.21.",
+        "fr": "Laissez vide : la passerelle est trouvée sur le réseau. Sinon son adresse IP, par exemple 192.168.1.21."
+      },
+      "placeholder": { "en": "Found automatically", "fr": "Trouvée automatiquement" },
+      "required": false
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
+      "key": "find_gateways",
+      "label": {
+        "en": "Find the IKEA gateways on the network",
+        "fr": "Chercher les passerelles IKEA sur le réseau"
+      },
       "timeout_seconds": 30
     },
     {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "pair_dirigera",
+      "label": { "en": "Pair the DIRIGERA hub", "fr": "Appairer le hub DIRIGERA" },
+      "timeout_seconds": 120,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "key": "dirigera_help",
+          "type": "section",
+          "label": { "en": "Then press the hub button", "fr": "Puis appuyez sur le bouton du hub" },
+          "description": {
+            "en": "After clicking, press the action button under the DIRIGERA hub within 90 seconds: the hub then gives Gladys its access.",
+            "fr": "Après avoir cliqué, appuyez sur le bouton d'action sous le hub DIRIGERA dans les 90 secondes : le hub donne alors son accès à Gladys."
+          }
+        }
+      ]
+    },
+    {
+      "key": "pair_tradfri",
+      "label": { "en": "Pair the TRÅDFRI gateway", "fr": "Appairer la passerelle TRÅDFRI" },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "security_code",
+          "type": "string",
+          "label": {
+            "en": "Security code (printed under the gateway)",
+            "fr": "Code de sécurité (imprimé sous la passerelle)"
+          },
+          "placeholder": { "en": "16 characters", "fr": "16 caractères" },
           "required": true
         }
       ]
@@ -103,75 +130,53 @@
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "remote_button",
+      "label": { "en": "IKEA remote button", "fr": "Bouton d'une télécommande IKEA" },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A press on a shortcut button or a remote paired with the DIRIGERA hub (SOMRIG, TRÅDFRI shortcut button, BILRESA…).",
+        "fr": "Un appui sur un bouton raccourci ou une télécommande appairés au hub DIRIGERA (SOMRIG, bouton raccourci TRÅDFRI, BILRESA…)."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": { "en": "Remote", "fr": "Télécommande" }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "button",
+          "type": "select",
+          "label": { "en": "Button", "fr": "Bouton" },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            { "value": "1", "label": { "en": "Button 1", "fr": "Bouton 1" } },
+            { "value": "2", "label": { "en": "Button 2", "fr": "Bouton 2" } },
+            { "value": "3", "label": { "en": "Button 3", "fr": "Bouton 3" } },
+            { "value": "4", "label": { "en": "Button 4", "fr": "Bouton 4" } }
+          ]
+        },
+        {
+          "key": "action",
+          "type": "select",
+          "label": { "en": "Press", "fr": "Appui" },
+          "options": [
+            { "value": "single_press", "label": { "en": "Single press", "fr": "Appui simple" } },
+            { "value": "double_press", "label": { "en": "Double press", "fr": "Double appui" } },
+            { "value": "long_press", "label": { "en": "Long press", "fr": "Appui long" } }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "button",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": { "en": "Button number", "fr": "Numéro du bouton" }
+        },
+        {
+          "key": "action",
+          "type": "string",
+          "label": { "en": "Press", "fr": "Appui" }
         }
       ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
-      },
-      "icon": "activity",
-      "action_timeout_seconds": 15
     }
   ]
 }
