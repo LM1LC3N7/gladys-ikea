@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-15
+
 ### Added
 
 - DIRIGERA hub: pairing with the action button under the hub, the devices of
@@ -31,4 +33,5 @@ the notes of the version's GitHub Release.
   the TRÅDFRI gateway" buttons.
 - States within the Gladys rate limit, measurements spaced by 10 seconds.
 
-[Unreleased]: https://github.com/LM1LC3N7/gladys-ikea/commits/main
+[Unreleased]: https://github.com/LM1LC3N7/gladys-ikea/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/LM1LC3N7/gladys-ikea/releases/tag/v0.1.1
