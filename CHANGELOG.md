@@ -10,6 +10,11 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- LICENSE file (Apache-2.0, as declared in package.json), also copied into the
+  image.
+
 ### Changed
 
 - README: the store install note replaces the work-in-progress notice, and the
